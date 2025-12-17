@@ -1,0 +1,13 @@
+node_modules/
+assets/
+dist/
+build/
+out/
+coverage/
+*.log
+.env
+.env.*
+.office-addin-dev-certs/
+.vscode/
+.DS_Store
+Thumbs.db

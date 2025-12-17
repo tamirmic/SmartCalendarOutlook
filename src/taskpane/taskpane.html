@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Smart Calendar</title>
+
+    <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://res-1.cdn.office.net/files/fabric-cdn-prod_20230815.002/office-ui-fabric-core/11.1.0/css/fabric.min.css"
+    />
+    <link href="taskpane.css" rel="stylesheet" type="text/css" />
+  </head>
+
+  <body class="sc-root ms-Fabric ms-font-m">
+    <header class="sc-header">
+      <div class="sc-brand">
+        <div class="sc-logo">SC</div>
+        <div>
+          <div class="sc-title">Smart Calendar</div>
+          <div class="sc-subtitle">Create a calendar draft from an email</div>
+        </div>
+      </div>
+    </header>
+
+    <main class="sc-main">
+      <section class="sc-card">
+        <div class="sc-card-title">What it does</div>
+        <div class="sc-text">
+          Click <b>Smart Calendar</b> in the ribbon while viewing an email.
+          Smart Calendar opens a <b>new event draft</b> using the email subject and a short snippet of the email body.
+        </div>
+
+        <div class="sc-divider"></div>
+
+        <div class="sc-card-title">Basic mode (current)</div>
+        <ul class="sc-list">
+          <li>Title = email subject</li>
+          <li>Body = first part of email</li>
+          <li>Time = tomorrow at 10:00–10:30 (placeholder)</li>
+        </ul>
+
+        <div class="sc-divider"></div>
+
+        <div class="sc-card-title">AI prefill (next)</div>
+        <div class="sc-text">
+          Smart Calendar will scan the email for natural language (e.g., “next Friday afternoon”)
+          and suggest the most likely date/time with confidence and alternatives.
+        </div>
+      </section>
+
+      <section class="sc-card">
+        <div class="sc-card-title">Current email</div>
+
+        <div class="sc-row">
+          <div class="sc-label">Subject</div>
+          <div id="email-subject" class="sc-value sc-mono">—</div>
+        </div>
+
+        <div class="sc-row">
+          <div class="sc-label">From</div>
+          <div id="email-from" class="sc-value sc-mono">—</div>
+        </div>
+
+        <div class="sc-row">
+          <div class="sc-label">Received</div>
+          <div id="email-received" class="sc-value sc-mono">—</div>
+        </div>
+
+        <div id="status" class="sc-status">Ready.</div>
+      </section>
+
+      <section class="sc-footnote">
+        Dev tip: Keep <span class="sc-mono">npm start</span> running while testing.
+      </section>
+    </main>
+
+    <script src="taskpane.js"></script>
+  </body>
+</html>
