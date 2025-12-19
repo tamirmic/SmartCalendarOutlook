@@ -3,16 +3,11 @@
  * Command handler for creating a calendar draft from an email
  */
 
-/* global Office */
+/* global Office, fetch */
 
 Office.onReady(() => {
   // Office.js is ready
 });
-
-/**
- * Ribbon command: Create calendar draft (basic mode)
- * @param {Office.AddinCommands.Event} event
- */
 
 function action(event) {
   const item = Office.context.mailbox.item;
@@ -22,9 +17,9 @@ function action(event) {
     return;
   }
 
-  showStatus(item, "Creating calendar draft…");
+  showStatus(item, "Analyzing email…");
 
-  item.body.getAsync(Office.CoercionType.Text, (result) => {
+  item.body.getAsync(Office.CoercionType.Text, async (result) => {
     if (result.status !== Office.AsyncResultStatus.Succeeded) {
       console.error("Smart Calendar: failed to read email body", result.error);
       showError(item, "Could not read email content.");
@@ -32,25 +27,60 @@ function action(event) {
       return;
     }
 
-    const subject = item.subject || "Event";
-    const body = result.value || "";
+    const subject = item.subject || "";
+    const body = (result.value || "").slice(0, 8000); // cap payload
+    const timezone = guessTimezone() || "UTC";
 
-    const start = new Date(Date.now() + 24 * 60 * 60 * 1000);
-    start.setHours(10, 0, 0, 0);
-    const end = new Date(start.getTime() + 30 * 60 * 1000);
+    // Anchor time for relative phrases later (tomorrow/next Friday)
+    const receivedAt =
+      item.dateTimeCreated || item.dateTimeModified || new Date().toISOString();
 
-    Office.context.mailbox.displayNewAppointmentForm({
-      subject,
-      start,
-      end,
-      location: "TBD",
-      body: body.slice(0, 2000),
-    });
+    const payload = { subject, body, receivedAt, timezone };
 
-    showStatus(item, "Calendar draft opened.");
-    event.completed();
+    try {
+      showStatus(item, "Contacting Smart Calendar service…");
+
+      const resp = await fetch("http://localhost:8787/api/extract-event", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!resp.ok) {
+        const text = await resp.text().catch(() => "");
+        console.error("Backend error:", resp.status, text);
+        showError(item, `Backend error (${resp.status}).`);
+        event.completed();
+        return;
+      }
+
+      const proposal = await resp.json();
+
+      // proposal.start/end are ISO strings from backend
+      const start = new Date(proposal.start);
+      const end = new Date(proposal.end);
+
+      Office.context.mailbox.displayNewAppointmentForm({
+        subject: proposal.title || subject || "Event",
+        start,
+        end,
+        location: proposal.location || "TBD",
+        body: body.slice(0, 2000),
+      });
+
+      showStatus(item, "Draft opened.");
+      event.completed();
+    } catch (e) {
+      console.error("Smart Calendar fetch failed:", e);
+      showError(item, "Could not reach backend (is it running?).");
+      event.completed();
+    }
   });
 }
+
+/* -------------------------------
+   Helpers
+-------------------------------- */
 
 function showStatus(item, message) {
   item.notificationMessages.replaceAsync("SmartCalendarStatus", {
@@ -66,6 +96,16 @@ function showError(item, message) {
     type: Office.MailboxEnums.ItemNotificationMessageType.ErrorMessage,
     message: `Smart Calendar: ${message}`,
   });
+}
+
+// Best-effort timezone guess without extra libraries.
+// Later we can make this more accurate with mailbox settings / backend inference.
+function guessTimezone() {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone;
+  } catch {
+    return null;
+  }
 }
 
 Office.actions.associate("action", action);
