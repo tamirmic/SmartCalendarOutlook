@@ -7,7 +7,6 @@ import { extractEventHF } from "./ai/extractEventHF.js";
 const app = express();
 app.use(express.json({ limit: "1mb" }));
 
-// Dev CORS: allow Outlook add-in pages served from localhost:3000
 app.use(
   cors({
     origin: ["https://localhost:3000", "http://localhost:3000"],
@@ -19,14 +18,14 @@ app.use(
 const ExtractRequestSchema = z.object({
   subject: z.string().default(""),
   body: z.string().default(""),
-  receivedAt: z.string().optional(), // ISO string
-  timezone: z.string().default("UTC"), // IANA tz string ideally
+  receivedAt: z.string().optional(),
+  timezone: z.string().default("UTC"),
 });
 
 const EventProposalSchema = z.object({
   title: z.string(),
-  start: z.string(), // ISO
-  end: z.string(), // ISO
+  start: z.string(),
+  end: z.string(),
   timezone: z.string(),
   location: z.string().nullable().optional(),
   attendees: z.array(z.string()).optional(),
@@ -44,7 +43,6 @@ const EventProposalSchema = z.object({
   explanation: z.string().optional(),
 });
 
-// ---- Routes ----
 app.get("/health", (req, res) => {
   res.json({ ok: true });
 });

@@ -28,12 +28,11 @@ function action(event) {
     }
 
     const subject = item.subject || "";
-    const body = (result.value || "").slice(0, 8000); // cap payload
+    const body = (result.value || "").slice(0, 8000);
     const timezone = guessTimezone() || "UTC";
 
     // Anchor time for relative phrases later (tomorrow/next Friday)
-    const receivedAt =
-      item.dateTimeCreated || item.dateTimeModified || new Date().toISOString();
+    const receivedAt = item.dateTimeCreated || item.dateTimeModified || new Date().toISOString();
 
     const payload = { subject, body, receivedAt, timezone };
 
@@ -56,7 +55,6 @@ function action(event) {
 
       const proposal = await resp.json();
 
-      // proposal.start/end are ISO strings from backend
       const start = new Date(proposal.start);
       const end = new Date(proposal.end);
 
@@ -78,10 +76,6 @@ function action(event) {
   });
 }
 
-/* -------------------------------
-   Helpers
--------------------------------- */
-
 function showStatus(item, message) {
   item.notificationMessages.replaceAsync("SmartCalendarStatus", {
     type: Office.MailboxEnums.ItemNotificationMessageType.InformationalMessage,
@@ -98,8 +92,6 @@ function showError(item, message) {
   });
 }
 
-// Best-effort timezone guess without extra libraries.
-// Later we can make this more accurate with mailbox settings / backend inference.
 function guessTimezone() {
   try {
     return Intl.DateTimeFormat().resolvedOptions().timeZone;
